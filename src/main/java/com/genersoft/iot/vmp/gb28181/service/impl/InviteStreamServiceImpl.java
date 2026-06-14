@@ -1,30 +1,29 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
-import com.alibaba.fastjson2.JSON;
-import com.genersoft.iot.vmp.common.*;
-import com.genersoft.iot.vmp.common.enums.MediaStreamUtil;
-import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
-import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
-import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
-import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
-import com.genersoft.iot.vmp.service.bean.ErrorCallback;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
-import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson2.JSON;
+import com.genersoft.iot.vmp.common.InviteInfo;
+import com.genersoft.iot.vmp.common.InviteSessionStatus;
+import com.genersoft.iot.vmp.common.InviteSessionType;
+import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -37,30 +36,6 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
 
     @Autowired
     private UserSetting userSetting;
-
-    @Autowired
-    private DeviceMapper deviceMapper;
-
-    @Autowired
-    private DeviceChannelMapper deviceChannelMapper;
-
-    /**
-     * 流离开的处理
-     */
-    @Async
-    @EventListener
-    public void onApplicationEvent(MediaDepartureEvent event) {
-        if ("rtsp".equals(event.getSchema()) && MediaStreamUtil.isGB28181(event.getApp(), event.getStream())) {
-            InviteInfo inviteInfo = getInviteInfoByStream(null, event.getStream());
-            if (inviteInfo != null && (inviteInfo.getType() == InviteSessionType.PLAY || inviteInfo.getType() == InviteSessionType.PLAYBACK)) {
-                removeInviteInfo(inviteInfo);
-                Device device = deviceMapper.getDeviceByDeviceId(inviteInfo.getDeviceId());
-                if (device != null) {
-                    deviceChannelMapper.stopPlayById(inviteInfo.getChannelId());
-                }
-            }
-        }
-    }
 
     @Override
     public void updateInviteInfo(InviteInfo inviteInfo) {

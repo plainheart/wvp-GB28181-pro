@@ -1683,7 +1683,7 @@ public class PlayServiceImpl implements IPlayService {
             log.info("[停止点播/回放/下载] {}/{}", device.getDeviceId(), channel.getDeviceId());
             InviteInfo inviteInfo = inviteStreamService.getInviteInfo(type, channel.getId(), stream);
             if (inviteInfo == null) {
-                if (type == InviteSessionType.PLAY) {
+                if (type == InviteSessionType.PLAY || type == InviteSessionType.PLAYBACK) {
                     deviceChannelService.stopPlay(channel.getId());
                 }
                 return;
@@ -1699,7 +1699,7 @@ public class PlayServiceImpl implements IPlayService {
                 }
             }
 
-            if (inviteInfo.getType() == InviteSessionType.PLAY) {
+            if (inviteInfo.getType() == InviteSessionType.PLAY || inviteInfo.getType() == InviteSessionType.PLAYBACK) {
                 deviceChannelService.stopPlay(channel.getId());
             }
             if (inviteInfo.getStreamInfo() != null) {
@@ -1731,7 +1731,7 @@ public class PlayServiceImpl implements IPlayService {
             }
         }
 
-        if (inviteInfo.getType() == InviteSessionType.PLAY) {
+        if (inviteInfo.getType() == InviteSessionType.PLAY || inviteInfo.getType() == InviteSessionType.PLAYBACK) {
             deviceChannelService.stopPlay(channel.getId());
         }
         if (inviteInfo.getStreamInfo() != null) {
